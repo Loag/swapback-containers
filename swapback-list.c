@@ -1,11 +1,13 @@
 #include "swapback-list.h"
 #include <stdlib.h>
 
-swapbacklist *newSwapbackList() {
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+
+swapbacklist *newSwapbackList(void *ptr) {
   node *n = malloc(sizeof(node));
   n->next = NULL;
   n->prev = NULL;
-  n->data = NULL;
+  n->data = ptr;
 
   swapbacklist *s = malloc(sizeof(swapbacklist));
   s->head = n;
@@ -14,16 +16,30 @@ swapbacklist *newSwapbackList() {
 }
 
 void addListNode(swapbacklist *list, void *ptr) {
-  node *newTail = malloc(sizeof(node));
+  if (list != NULL) {
+    node *newTail = malloc(sizeof(node));
 
-  newTail->prev = list->tail;
-  newTail->next = NULL;
-  newTail->data = ptr;
+    // if head and tail exist
+    if (list->head != NULL && list->tail != NULL) {
 
-  list->tail->next = newTail;
-  list->tail = newTail;
+      newTail->prev = list->tail;
+      newTail->next = NULL;
+      newTail->data = ptr;
+
+      // set the current tails next to the new tail
+      list->tail->next = newTail;
+
+      list->tail = newTail;
+    } else {
+      list->head = newTail;
+      list->tail = newTail;
+    }
+  }
 }
 
+// if we had the length we could probably be
+// marginally faster since we could chose to
+// iterate from the front or back
 void removeListNode(swapbacklist *list, int pos) {
   int cur = 0;
   node *current = list->head;
